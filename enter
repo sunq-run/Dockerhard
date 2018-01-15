@@ -1,0 +1,4 @@
+#!/bin/bash 
+
+sudo docker exec -it hardening_$1_1 /bin/bash
+

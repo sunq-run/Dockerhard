@@ -1,0 +1,96 @@
+version: '2'
+networks:
+  globalnet:
+   ipam:
+      config:
+         - subnet: 172.13.0.0/16
+           ip_range: 172.28.5.0/24
+  fwnet:
+    driver: bridge
+    ipam:
+      config:
+         - subnet: 10.2.2.0/24
+           gateway: 10.2.2.251
+  mainfwlocal:
+     driver: bridge
+     ipam:
+        config:
+         - subnet: 192.168.0.0/24         
+  subfwlocal:
+     driver: bridge
+     ipam:
+        config:
+         - subnet: 192.168.129.0/24    
+     
+services:
+  customer:
+    image: customer
+    hostname: customer
+    tty: true
+    stdin_open: true
+    privileged: true
+    command: /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    networks:
+        globalnet:
+          ipv4_address: 172.13.39.39
+
+  global:
+    image: global
+    hostname: global
+    tty: true
+    stdin_open: true
+    privileged: true
+    command: /usr/bin/supervisord -c /etc/supervisor/supervisord.conf 
+    networks:
+        globalnet:
+          ipv4_address: 172.13.128.2
+        fwnet:
+          ipv4_address: 10.2.2.254
+         
+  mainfw:
+    image: mainfw
+    hostname: mainfw
+    tty: true
+    stdin_open: true
+    privileged: true
+    networks:
+        fwnet:
+           ipv4_address: 10.2.2.251
+        mainfwlocal:
+           ipv4_address: 192.168.0.254
+
+  subfw:
+    image: subfw
+    hostname: subfw
+    tty: true
+    stdin_open: true
+    privileged: true
+    networks:
+        fwnet:
+           ipv4_address: 10.2.2.252
+        subfwlocal:
+           ipv4_address: 192.168.129.123
+
+  web1:
+    image: web1
+    hostname: web1
+    tty: true
+    stdin_open: true
+    privileged: true
+    networks:
+        mainfwlocal:
+                ipv4_address: 192.168.0.2
+ 
+  support1:
+    image: support1
+    hostname: support-server
+    tty: true
+    stdin_open: true
+    privileged: true
+    networks:
+        subfwlocal:
+           ipv4_address: 192.168.129.8
+    ports:
+        - "12345:22"
+
+
